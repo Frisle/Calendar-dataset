@@ -1,11 +1,13 @@
 Class data.generator Extends %RegisteredObject
 {
 
-ClassMethod Generate(StartDate, EndDate, days = 1, months = 1) As %Status
+ClassMethod Generate(StartDate = "1970-01-01", EndDate, days = 1, months = 1) As %Status
 {
+    KILL ^data.DateClasess.DaysD, ^data.DateClasess.MonthsD
+
     // date in format: 2000-01-01 or 2000-01-01 00:00:00 
     set sc = $$$OK
-    if 'StartDate set StartTs = $ZDATETIME($ZDATETIMEH("1970-01-01", 3), 3)
+    set StartTs = $ZDATETIME($ZDATETIMEH(StartDate, 3), 3)
     if 'EndDate set EndTs = $SYSTEM.SQL.Functions.DATEADD("year", 10, $ZDATETIMEH($ZDATETIME($NOW(), 3), 3))
     
 
@@ -14,7 +16,7 @@ ClassMethod Generate(StartDate, EndDate, days = 1, months = 1) As %Status
 
     if days{
         for i=1:1:DiffInMonths{
-            set date = $SYSTEM.SQL.Functions.DATEADD("month", i, StartTs)
+            set date = $SYSTEM.SQL.Functions.DATEADD("day", i, StartTs)
             set obj = ..Days(date)
 
             do ##class(data.DateClasess.Days).Insert(
@@ -28,7 +30,10 @@ ClassMethod Generate(StartDate, EndDate, days = 1, months = 1) As %Status
                 obj.WeekYearNumeric,
                 obj.Week,
                 obj.Year,
-                obj.TimeStamp
+                obj.TimeStamp,
+                obj.DayName,
+                obj.DayOfMonth,
+                obj.DayOfYear
                 
             )
         }
@@ -38,7 +43,7 @@ ClassMethod Generate(StartDate, EndDate, days = 1, months = 1) As %Status
         for i=1:1:DiffInMonths{
             set date = $SYSTEM.SQL.Functions.DATEADD("month", i, StartTs)
             set obj = ..Months(date)
-       
+            
             do ##class(data.DateClasess.Months).Insert(
                 obj.ShortMonthName,
                 obj.LongMonthName,
@@ -48,7 +53,9 @@ ClassMethod Generate(StartDate, EndDate, days = 1, months = 1) As %Status
                 obj.MonthYearLong,
                 obj.Year,
                 obj.Quarter,
-                obj.MonthNumeric
+                obj.MonthNumeric,
+                obj.TimeStamp
+                
             )
     
     }
@@ -84,6 +91,7 @@ ClassMethod Months(ts, delimeter = "-") As %Library.DynamicObject
     set obj.Year = Year
     set obj.Quarter = Quarter
     set obj.MonthNumeric = MonthNumeric
+    set obj.TimeStamp = $ZDATETIME($ZDATETIMEH(ts,3), 3)
 
 
     return obj
@@ -107,7 +115,7 @@ ClassMethod Days(ts, delimeter = "-") As %Library.DynamicObject
 
     set Week = $SYSTEM.SQL.Functions.WEEK($ZDATETIME($ZDATETIMEH(ts,3), 3))
     set WeekYearString = Year_"-"_"W"_Week
-    set WeekYearNumeric = Year_Week
+    set WeekYearNumeric = Year_Week 
 
     set obj.ShortMonthName = ShortMonthName
     set obj.LongMonthName = LongMonthName
@@ -120,6 +128,9 @@ ClassMethod Days(ts, delimeter = "-") As %Library.DynamicObject
     set obj.Year = Year
     set obj.MonthNumeric = MonthNumeric
     set obj.TimeStamp = $ZDATETIME($ZDATETIMEH(ts,3), 3)
+    set obj.DayName = $SYSTEM.SQL.Functions.DAYNAME($ZDATETIME($ZDATETIMEH(ts,3), 3))
+    set obj.DayOfMonth = $SYSTEM.SQL.Functions.DAYOFMONTH($ZDATETIME($ZDATETIMEH(ts,3), 3))
+    set obj.DayOfYear = $SYSTEM.SQL.Functions.DAYOFYEAR($ZDATETIME($ZDATETIMEH(ts,3), 3))
 
     return obj
 }

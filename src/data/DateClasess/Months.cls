@@ -9,8 +9,6 @@ Property QuarterYear As %String;
 
 Property MonthYearNum As %Integer;
 
-Index MonthYearNumX On MonthYearNum [ Unique ];
-
 Property MonthYear As %String;
 
 Property MonthYearLong As %String;
@@ -21,7 +19,9 @@ Property Quarter As %Integer;
 
 Property MonthNumeric As %Integer;
 
-ClassMethod Insert(ShortMonthName, LongMonthName, QuarterYear, MonthYearNum, MonthYear, MonthYearLong, Year, Quarter, MonthNumeric) As %Status
+Property TimeStamp As %TimeStamp;
+
+ClassMethod Insert(ShortMonthName, LongMonthName, QuarterYear, MonthYearNum, MonthYear, MonthYearLong, Year, Quarter, MonthNumeric, TimeStamp) As %Status
 {
     set sc = $$$OK
     
@@ -36,9 +36,10 @@ ClassMethod Insert(ShortMonthName, LongMonthName, QuarterYear, MonthYearNum, Mon
     set monthClass.Years = Year
     set monthClass.Quarter = Quarter
     set monthClass.MonthNumeric = MonthNumeric
+    set monthClass.TimeStamp = TimeStamp
 
     set sc = monthClass.%Save()
-
+    zw sc
     return sc
 }
 
@@ -77,6 +78,9 @@ Storage Default
 </Value>
 <Value name="11">
 <Value>Years</Value>
+</Value>
+<Value name="12">
+<Value>TimeStamp</Value>
 </Value>
 </Data>
 <DataLocation>^data.DateClasess.MonthsD</DataLocation>

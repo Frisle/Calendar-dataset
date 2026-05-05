@@ -19,15 +19,17 @@ Property Week As %Integer;
 
 Property Years As %Integer;
 
-Property DayNumeric As %Integer;
+Property DayOfMonth As %Integer;
 
-Property DayOfWeek As %String;
+Property DayOfYear As %Integer;
+
+Property DayName As %String;
 
 Property MonthNumeric As %Integer;
 
 Property TimeStamp As %TimeStamp;
 
-ClassMethod Insert(ShortMonthName, LongMonthName, MonthYearNum, MonthYear, MonthYearLong, MonthNumeric, WeekYearString, WeekYearNumeric, Week, Year, TimeStamp) As %Status
+ClassMethod Insert(ShortMonthName, LongMonthName, MonthYearNum, MonthYear, MonthYearLong, MonthNumeric, WeekYearString, WeekYearNumeric, Week, Year, TimeStamp, DayName, DayOfMonth, DayOfYear) As %Status
 {
     set sc = $$$OK
     
@@ -44,7 +46,9 @@ ClassMethod Insert(ShortMonthName, LongMonthName, MonthYearNum, MonthYear, Month
     set daysClass.Week = Week
     set daysClass.Years = Year
     set daysClass.TimeStamp = TimeStamp
-
+    set daysClass.DayName = DayName
+    set daysClass.DayOfMonth = DayOfMonth
+    set daysClass.DayOfYear = DayOfYear
 
     set sc = daysClass.%Save()
 
@@ -82,22 +86,22 @@ Storage Default
 <Value>Week</Value>
 </Value>
 <Value name="10">
-<Value>Year</Value>
+<Value>Years</Value>
 </Value>
 <Value name="11">
-<Value>MonthNumeric</Value>
+<Value>DayOfMonth</Value>
 </Value>
 <Value name="12">
-<Value>TimeStamp</Value>
+<Value>DayOfYear</Value>
 </Value>
 <Value name="13">
-<Value>DayNumeric</Value>
+<Value>DayName</Value>
 </Value>
 <Value name="14">
-<Value>DayOfWeek</Value>
+<Value>MonthNumeric</Value>
 </Value>
 <Value name="15">
-<Value>Years</Value>
+<Value>TimeStamp</Value>
 </Value>
 </Data>
 <DataLocation>^data.DateClasess.DaysD</DataLocation>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+  <Document name="calendar-dataset.ZPM">
+    <Module>
+      <Name>calendar-dataset</Name>
+      <Version>1.0.0</Version>
+      <Description>A date and time table generator to make working with date-related data easier.</Description>
+      <Packaging>module</Packaging>
+      <SourcesRoot>src</SourcesRoot>
+      <Resource Name="data.PKG"/>
+    </Module>
+  </Document>
+</Export>

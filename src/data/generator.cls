@@ -1,21 +1,60 @@
 Class data.generator Extends %RegisteredObject
 {
 
-ClassMethod Generate(StartDate = "1970-01-01", EndDate, days = 1, months = 1, timeTable = 1) As %Status
+ClassMethod IsValidDateTime(DateTime As %String) As %Boolean
 {
-    KILL ^data.DateClasess.DaysD, ^data.DateClasess.MonthsD
+    Set Valid = 1
+    
+    Try {
+        Set h = $ZDATETIMEH(DateTime, 3)
+    } Catch er {
+        Set Valid = 0
+    }
+    
+    Quit Valid
+}
 
-    // date in format: 2000-01-01 or 2000-01-01 00:00:00 
+ClassMethod Generate(fromTs = "1970-01-01 00:00:00", toTs, days = 1, months = 1, timeTable = 1) As %Status
+{
     set sc = $$$OK
-    set StartTs = $ZDATETIME($ZDATETIMEH(StartDate, 3), 3)
-    if 'EndDate set EndTs = $SYSTEM.SQL.Functions.DATEADD("year", 10, $ZDATETIMEH($ZDATETIME($NOW(), 3), 3))
+
+    if '..IsValidDateTime(fromTs) || '..IsValidDateTime(toTs){
+        write "Wrong datetime format!", !
+        write "Required format: YYYY-MM-DD HH:MM:SS or YYYY-MM-DD"
+        return sc
+    }
+
+    if $ZDATETIMEH(fromTs, 3) > $ZDATETIMEH(toTs, 3){
+        write "First argument should be smaller that the second!", !
+        write "Now, the first arg: ", fromTs, " and the second ", toTs
+        return sc
+    }
+
+    
+    write "Generating date time dataset from: ", fromTs," to ", $SELECT(toTs:toTs, 'toTs:$SYSTEM.SQL.Functions.DATEADD("year", 10, $ZDATETIMEH($ZDATETIME($NOW(), 3), 3))), !
+    write "Configuration: ",!, 
+        " Days table: ",$SELECT(days:"Yes;", 'days:"No;"),!,
+        " Months table: ",$SELECT(months:"Yes;",'months:"No;"),!, 
+        " Time table: ",$SELECT(timeTable:"Yes;",'timeTable:"No;"), !,!
+    write $SELECT(days:"Population starts!", months:"Population starts!", timeTable:"Population starts!", 1:"Nothing to populate"), !
+
+    set sc = $$$OK
+    set StartTs = $ZDATETIME($ZDATETIMEH(fromTs, 3), 3)
+
+    if 'toTs{
+        set EndTs = $SYSTEM.SQL.Functions.DATEADD("year", 10, $ZDATETIMEH($ZDATETIME($NOW(), 3), 3))
+    } 
+    else{
+        set EndTs = toTs
+    }
     
 
     set DiffInMonths = $SYSTEM.SQL.Functions.DATEDIFF("month", StartTs, EndTs)
     set DiffInDays = $SYSTEM.SQL.Functions.DATEDIFF("day", StartTs, EndTs)
 
     if days{
-        for i=1:1:DiffInMonths{
+        KILL ^data.DateClasess.DaysD
+        for i=1:1:DiffInDays{
             set date = $SYSTEM.SQL.Functions.DATEADD("day", i, StartTs)
             set obj = ..Days(date)
 
@@ -37,35 +76,49 @@ ClassMethod Generate(StartDate = "1970-01-01", EndDate, days = 1, months = 1, ti
                 
             )
         }
+        write DiffInDays, " days successfully populated", !
     }
 
     if months{
-        for i=1:1:DiffInMonths{
-            set date = $SYSTEM.SQL.Functions.DATEADD("month", i, StartTs)
-            set obj = ..Months(date)
-            
-            do ##class(data.DateClasess.Months).Insert(
-                obj.ShortMonthName,
-                obj.LongMonthName,
-                obj.QuarterYear,
-                obj.MonthYearNum,
-                obj.MonthYear,
-                obj.MonthYearLong,
-                obj.Year,
-                obj.Quarter,
-                obj.MonthNumeric,
-                obj.TimeStamp
+        KILL ^data.DateClasess.MonthsD
+            for i=1:1:DiffInMonths{
+                set date = $SYSTEM.SQL.Functions.DATEADD("month", i, StartTs)
+                set obj = ..Months(date)
                 
-            )
-    
+                do ##class(data.DateClasess.Months).Insert(
+                    obj.ShortMonthName,
+                    obj.LongMonthName,
+                    obj.QuarterYear,
+                    obj.MonthYearNum,
+                    obj.MonthYear,
+                    obj.MonthYearLong,
+                    obj.Year,
+                    obj.Quarter,
+                    obj.MonthNumeric,
+                    obj.TimeStamp
+                    
+                )
+        }
+        write DiffInMonths, " months successfully populated", !
     }
 
     if timeTable{
-
-        do ##class(data.generator).Populate24Hours()
+        KILL ^data.DateClasess.TimeTableD
+        set timeClass = ##class(data.DateClasess.TimeTable).%New()
+    
+        For hour=0:1:23 {
+            For min=0:1:59 {
+                For sec=0:1:59 {
+                    Set obj = ..TimeTable(hour, min, sec)
+                    do timeClass.Insert(obj.hours, obj.minutes, obj.seconds, obj.timestamp, obj.htimestamp, obj.ampmtimestamp)
+                    
+                }
+            }
+        }
+        write "86400 seconds of time successfully populated"
     }
-    }
-
+    
+    
     return sc
 }
 
@@ -162,17 +215,7 @@ ClassMethod Populate24Hours() As %Status
 {
     Set sc = $$$OK
     
-    set timeClass = ##class(data.DateClasess.TimeTable).%New()
     
-    For hour=0:1:23 {
-        For min=0:1:59 {
-            For sec=0:1:59 {
-                Set obj = ..TimeTable(hour, min, sec)
-                do timeClass.Insert(obj.hours, obj.minutes, obj.seconds, obj.timestamp, obj.htimestamp, obj.ampmtimestamp)
-                
-            }
-        }
-    }
     
     
     return sc

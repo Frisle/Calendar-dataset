@@ -39,7 +39,6 @@ ClassMethod Insert(ShortMonthName, LongMonthName, QuarterYear, MonthYearNum, Mon
     set monthClass.TimeStamp = TimeStamp
 
     set sc = monthClass.%Save()
-    zw sc
     return sc
 }
 

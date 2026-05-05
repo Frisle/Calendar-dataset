@@ -1,7 +1,7 @@
 Class data.generator Extends %RegisteredObject
 {
 
-ClassMethod Generate(StartDate = "1970-01-01", EndDate, days = 1, months = 1) As %Status
+ClassMethod Generate(StartDate = "1970-01-01", EndDate, days = 1, months = 1, timeTable = 1) As %Status
 {
     KILL ^data.DateClasess.DaysD, ^data.DateClasess.MonthsD
 
@@ -58,6 +58,11 @@ ClassMethod Generate(StartDate = "1970-01-01", EndDate, days = 1, months = 1) As
                 
             )
     
+    }
+
+    if timeTable{
+
+        do ##class(data.generator).Populate24Hours()
     }
     }
 
@@ -133,6 +138,44 @@ ClassMethod Days(ts, delimeter = "-") As %Library.DynamicObject
     set obj.DayOfYear = $SYSTEM.SQL.Functions.DAYOFYEAR($ZDATETIME($ZDATETIMEH(ts,3), 3))
 
     return obj
+}
+
+ClassMethod TimeTable(hours, minutes, seconds) As %Library.DynamicObject
+{
+    Set obj = ##class(%DynamicObject).%New()
+    Set obj.hours = hours
+    Set obj.minutes = minutes
+    Set obj.seconds = seconds
+    set timestamp = $ZDATETIME($HOROLOG, 3, 1) _ " " _ 
+                         $EXTRACT("0"_hours, *-1, *) _ ":" _ 
+                         $EXTRACT("0"_minutes, *-1, *) _ ":" _ 
+                         $EXTRACT("0"_seconds, *-1, *)
+    
+    set obj.timestamp = $PIECE(timestamp, " ", 3)
+    set obj.htimestamp = $ZTIMEH($PIECE(timestamp, " ", 3), 2)
+    set obj.ampmtimestamp = $ZTIME($ZTIMEH($PIECE(timestamp, " ", 3), 2), 3)
+
+    return obj
+}
+
+ClassMethod Populate24Hours() As %Status
+{
+    Set sc = $$$OK
+    
+    set timeClass = ##class(data.DateClasess.TimeTable).%New()
+    
+    For hour=0:1:23 {
+        For min=0:1:59 {
+            For sec=0:1:59 {
+                Set obj = ..TimeTable(hour, min, sec)
+                do timeClass.Insert(obj.hours, obj.minutes, obj.seconds, obj.timestamp, obj.htimestamp, obj.ampmtimestamp)
+                
+            }
+        }
+    }
+    
+    
+    return sc
 }
 
 }

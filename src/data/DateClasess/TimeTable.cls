@@ -1,17 +1,34 @@
 Class data.DateClasess.TimeTable Extends %Persistent
 {
 
-Property TimeStamp As %TimeStamp;
-
-Property TwelfthFormatTimeStamp As %TimeStamp;
+Property TimeStamp As %String;
 
 Property Hours As %Integer;
-
-Property TwelfthFormatHour As %Integer;
 
 Property Minutes As %Integer;
 
 Property Seconds As %Integer;
+
+Property HTimeStamp As %Integer;
+
+Property AaPmTimeStamp As %String;
+
+ClassMethod Insert(Hours, Minutes, Seconds, TimeStamp, HTimeStamp, AaPmTimeStamp) As %Status
+{
+    set sc = $$$OK
+
+    set timeTable = ..%New()
+
+    set timeTable.Hours = Hours
+    set timeTable.Minutes = Minutes
+    set timeTable.Seconds = Seconds
+    set timeTable.TimeStamp = TimeStamp
+    set timeTable.HTimeStamp = HTimeStamp
+    set timeTable.AaPmTimeStamp = AaPmTimeStamp
+
+    set sc = timeTable.%Save()
+    return sc
+}
 
 Storage Default
 {
@@ -23,19 +40,19 @@ Storage Default
 <Value>TimeStamp</Value>
 </Value>
 <Value name="3">
-<Value>TwelfthFormatTimeStamp</Value>
-</Value>
-<Value name="4">
 <Value>Hours</Value>
 </Value>
-<Value name="5">
-<Value>TwelfthFormatHour</Value>
-</Value>
-<Value name="6">
+<Value name="4">
 <Value>Minutes</Value>
 </Value>
-<Value name="7">
+<Value name="5">
 <Value>Seconds</Value>
+</Value>
+<Value name="6">
+<Value>HTimeStamp</Value>
+</Value>
+<Value name="7">
+<Value>AaPmTimeStamp</Value>
 </Value>
 </Data>
 <DataLocation>^data.DateClasess.TimeTableD</DataLocation>

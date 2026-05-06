@@ -21,7 +21,7 @@ Property Quarter As %Integer;
 
 Property MonthNumeric As %Integer;
 
-Property TimeStamp As %TimeStamp;
+Property FullDate As %TimeStamp;
 
 ClassMethod Insert(ShortMonthName, LongMonthName, QuarterYear, MonthYearNum, MonthYear, MonthYearLong, Year, Quarter, MonthNumeric, TimeStamp) As %Status
 {
@@ -38,7 +38,7 @@ ClassMethod Insert(ShortMonthName, LongMonthName, QuarterYear, MonthYearNum, Mon
     set monthClass.Years = Year
     set monthClass.Quarter = Quarter
     set monthClass.MonthNumeric = MonthNumeric
-    set monthClass.TimeStamp = TimeStamp
+    set monthClass.FullDate = TimeStamp
 
     set sc = monthClass.%Save()
     return sc
@@ -81,7 +81,7 @@ Storage Default
 <Value>Years</Value>
 </Value>
 <Value name="12">
-<Value>TimeStamp</Value>
+<Value>FullDate</Value>
 </Value>
 </Data>
 <DataLocation>^data.DateClasses.MonthsD</DataLocation>

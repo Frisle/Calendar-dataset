@@ -1,7 +1,7 @@
 Class data.DateClasses.TimeTable Extends %Persistent
 {
 
-Property TimeStamp As %String;
+Property FullTime As %String;
 
 Property Hours As %Integer;
 
@@ -24,7 +24,7 @@ ClassMethod Insert(Hours, Minutes, Seconds, TimeStamp, HTimeStamp, AaPmTimeStamp
     set timeTable.Hours = Hours
     set timeTable.Minutes = Minutes
     set timeTable.Seconds = Seconds
-    set timeTable.TimeStamp = TimeStamp
+    set timeTable.FullTime = TimeStamp
     set timeTable.HTimeStamp = HTimeStamp
     set timeTable.AaPmTimeStamp = AaPmTimeStamp
 
@@ -55,6 +55,9 @@ Storage Default
 </Value>
 <Value name="7">
 <Value>AaPmTimeStamp</Value>
+</Value>
+<Value name="8">
+<Value>FullTime</Value>
 </Value>
 </Data>
 <DataLocation>^data.DateClasses.TimeTableD</DataLocation>

@@ -27,7 +27,7 @@ Property DayName As %String;
 
 Property MonthNumeric As %Integer;
 
-Property TimeStamp As %TimeStamp;
+Property FullDate As %TimeStamp;
 
 Property MonthYearNumDay As %Integer;
 
@@ -49,7 +49,7 @@ ClassMethod Insert(ShortMonthName, LongMonthName, MonthYearNum, MonthYear, Month
     set daysClass.WeekYearNumeric = WeekYearNumeric
     set daysClass.Week = Week
     set daysClass.Years = Year
-    set daysClass.TimeStamp = TimeStamp
+    set daysClass.FullDate = TimeStamp
     set daysClass.DayName = DayName
     set daysClass.DayOfMonth = DayOfMonth
     set daysClass.DayOfYear = DayOfYear
@@ -106,10 +106,10 @@ Storage Default
 <Value>MonthNumeric</Value>
 </Value>
 <Value name="15">
-<Value>TimeStamp</Value>
+<Value>MonthYearNumDay</Value>
 </Value>
 <Value name="16">
-<Value>MonthYearNumDay</Value>
+<Value>FullDate</Value>
 </Value>
 </Data>
 <DataLocation>^data.DateClasses.DaysD</DataLocation>

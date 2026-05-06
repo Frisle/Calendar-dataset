@@ -14,78 +14,91 @@ ClassMethod IsValidDateTime(DateTime As %String) As %Boolean
     Quit Valid
 }
 
-ClassMethod Generate(fromTs = "1970-01-01 00:00:00", toTs, days = 1, months = 1, timeTable = 1) As %Status
+/// Entry point <br>
+/// fromTs = starting dataset date must be lower than toTimeStamp <br>
+/// toTimeStamp = ending dataset date <br>
+/// days = flag to trigger days date dataset building; default = 1 <br>
+/// months = flag to trigger months date dataset building; default = 1 <br>
+/// timeTable = flag to trigger time dataset building; default = 1 <br>
+/// monthYearDelimeter = stands for symbol that separates month and year values: Jan-2026, Jan'2026, Jan`2026, Jan/2026 etc <br> 
+/// typical usage = do ##class(data.generator).Generate(,"",1,1,1,"-")
+/// <br>
+/// This would generate:
+/// <ul>
+/// <li> A dataset with dates by days, starting from "1970-01-01" and up to the current date and time + 10 years.</li>
+/// <li> A dataset with dates by month, starting from "1970-01-01" and up to the current date and time + 10 years.</li>
+/// <li> 24 hour time series dataset by seconds</li>
+/// <li> And the delimeter would be "Month-Year"</li>
+/// <ul>
+ClassMethod Generate(fromTs = "1970-01-01 00:00:00", toTs = "", days = 1, months = 1, timeTable = 1, monthYearDelimeter = "-") As %Status
 {
     set sc = $$$OK
+   
 
-    if '..IsValidDateTime(fromTs) || '..IsValidDateTime(toTs){
+    set toTimeStamp = $SELECT(toTs'="": toTs, 1:$SYSTEM.SQL.Functions.DATEADD("year", 10, $ZDATETIMEH($ZDATETIME($NOW(), 3), 3)) )
+    
+    if '..IsValidDateTime(fromTs) || '..IsValidDateTime(toTimeStamp){
         write "Wrong datetime format!", !
         write "Required format: YYYY-MM-DD HH:MM:SS or YYYY-MM-DD"
         return sc
     }
 
-    if $ZDATETIMEH(fromTs, 3) > $ZDATETIMEH(toTs, 3){
+    if $ZDATETIMEH(fromTs, 3) > $ZDATETIMEH(toTimeStamp, 3){
         write "First argument should be smaller that the second!", !
-        write "Now, the first arg: ", fromTs, " and the second ", toTs
+        write "Now, the first arg: ", fromTs, " and the second ", toTimeStamp
         return sc
     }
 
     
-    write "Generating date time dataset from: ", fromTs," to ", $SELECT(toTs:toTs, 'toTs:$SYSTEM.SQL.Functions.DATEADD("year", 10, $ZDATETIMEH($ZDATETIME($NOW(), 3), 3))), !
+    write "Generating date time dataset from: ", fromTs," to ", toTimeStamp, !
     write "Configuration: ",!, 
         " Days table: ",$SELECT(days:"Yes;", 'days:"No;"),!,
         " Months table: ",$SELECT(months:"Yes;",'months:"No;"),!, 
         " Time table: ",$SELECT(timeTable:"Yes;",'timeTable:"No;"), !,!
     write $SELECT(days:"Population starts!", months:"Population starts!", timeTable:"Population starts!", 1:"Nothing to populate"), !
-
-    set sc = $$$OK
-    set StartTs = $ZDATETIME($ZDATETIMEH(fromTs, 3), 3)
-
-    if 'toTs{
-        set EndTs = $SYSTEM.SQL.Functions.DATEADD("year", 10, $ZDATETIMEH($ZDATETIME($NOW(), 3), 3))
-    } 
-    else{
-        set EndTs = toTs
-    }
-    
-
-    set DiffInMonths = $SYSTEM.SQL.Functions.DATEDIFF("month", StartTs, EndTs)
-    set DiffInDays = $SYSTEM.SQL.Functions.DATEDIFF("day", StartTs, EndTs)
+ 
+    set DiffInMonths = $SYSTEM.SQL.Functions.DATEDIFF("month", fromTs, toTimeStamp)
+    set DiffInDays = $SYSTEM.SQL.Functions.DATEDIFF("day", fromTs, toTimeStamp)
 
     if days{
-        KILL ^data.DateClasess.DaysD
-        for i=1:1:DiffInDays{
-            set date = $SYSTEM.SQL.Functions.DATEADD("day", i, StartTs)
-            set obj = ..Days(date)
+        KILL ^data.DateClasses.DaysD
+        KILL ^data.DateClasses.DaysI
+            for i=0:1:DiffInDays{
+                set date = $SYSTEM.SQL.Functions.DATEADD("day", i, fromTs)
+                set obj = ..Days(date, monthYearDelimeter)
 
-            do ##class(data.DateClasess.Days).Insert(
-                obj.ShortMonthName,
-                obj.LongMonthName,
-                obj.MonthYearNum,
-                obj.MonthYear,
-                obj.MonthYearLong,
-                obj.MonthNumeric,
-                obj.WeekYearNumeric,
-                obj.WeekYearNumeric,
-                obj.Week,
-                obj.Year,
-                obj.TimeStamp,
-                obj.DayName,
-                obj.DayOfMonth,
-                obj.DayOfYear
-                
-            )
-        }
+                do ##class(data.DateClasses.Days).Insert(
+                    obj.ShortMonthName,
+                    obj.LongMonthName,
+                    obj.MonthYearNum,
+                    obj.MonthYear,
+                    obj.MonthYearLong,
+                    obj.MonthNumeric,
+                    obj.WeekYearString,
+                    obj.WeekYearNumeric,
+                    obj.Week,
+                    obj.Year,
+                    obj.TimeStamp,
+                    obj.DayName,
+                    obj.DayOfMonth,
+                    obj.DayOfYear,
+                    obj.MonthYearNumDay
+                    
+                )
+                        
+            }
         write DiffInDays, " days successfully populated", !
+
     }
 
     if months{
-        KILL ^data.DateClasess.MonthsD
-            for i=1:1:DiffInMonths{
-                set date = $SYSTEM.SQL.Functions.DATEADD("month", i, StartTs)
-                set obj = ..Months(date)
+        KILL ^data.DateClasses.MonthsD
+        KILL ^data.DateClasses.MonthsI
+            for i=0:1:DiffInMonths{
+                set date = $SYSTEM.SQL.Functions.DATEADD("month", i, fromTs)
+                set obj = ..Months(date, monthYearDelimeter)
                 
-                do ##class(data.DateClasess.Months).Insert(
+                do ##class(data.DateClasses.Months).Insert(
                     obj.ShortMonthName,
                     obj.LongMonthName,
                     obj.QuarterYear,
@@ -98,13 +111,16 @@ ClassMethod Generate(fromTs = "1970-01-01 00:00:00", toTs, days = 1, months = 1,
                     obj.TimeStamp
                     
                 )
+            
         }
         write DiffInMonths, " months successfully populated", !
+        
     }
 
     if timeTable{
-        KILL ^data.DateClasess.TimeTableD
-        set timeClass = ##class(data.DateClasess.TimeTable).%New()
+        KILL ^data.DateClasses.TimeTableD
+        KILL ^data.DateClasses.TimeTableI
+        set timeClass = ##class(data.DateClasses.TimeTable).%New()
     
         For hour=0:1:23 {
             For min=0:1:59 {
@@ -113,16 +129,19 @@ ClassMethod Generate(fromTs = "1970-01-01 00:00:00", toTs, days = 1, months = 1,
                     do timeClass.Insert(obj.hours, obj.minutes, obj.seconds, obj.timestamp, obj.htimestamp, obj.ampmtimestamp)
                     
                 }
+            
             }
+            
         }
         write "86400 seconds of time successfully populated"
+        
     }
     
     
     return sc
 }
 
-ClassMethod Months(ts, delimeter = "-") As %Library.DynamicObject
+ClassMethod Months(ts, delimeter) As %Library.DynamicObject
 {
  
     set obj = ##class(%Library.DynamicObject).%New()
@@ -155,7 +174,7 @@ ClassMethod Months(ts, delimeter = "-") As %Library.DynamicObject
     return obj
 }
 
-ClassMethod Days(ts, delimeter = "-") As %Library.DynamicObject
+ClassMethod Days(ts, delimeter) As %Library.DynamicObject
 {
     set obj = ##class(%Library.DynamicObject).%New()
 
@@ -168,12 +187,12 @@ ClassMethod Days(ts, delimeter = "-") As %Library.DynamicObject
 
     set MonthYearNumeric = YearNumeric_MonthNumeric // 197001, 197002.. 203001
 
-    set MonthYearString = ShortMonthName_delimeter_Year
-    set MonthYearLongString = LongMonthName_delimeter_Year
+    set MonthYearString = ShortMonthName_delimeter_Year // Jan-1970
+    set MonthYearLongString = LongMonthName_delimeter_Year // January-1970
 
     set Week = $SYSTEM.SQL.Functions.WEEK($ZDATETIME($ZDATETIMEH(ts,3), 3))
-    set WeekYearString = Year_"-"_"W"_Week
-    set WeekYearNumeric = Year_Week 
+    set WeekYearString = Year_"-"_"W"_Week // 1970-W01
+    set WeekYearNumeric = Year_Week // 197001
 
     set obj.ShortMonthName = ShortMonthName
     set obj.LongMonthName = LongMonthName
@@ -189,6 +208,7 @@ ClassMethod Days(ts, delimeter = "-") As %Library.DynamicObject
     set obj.DayName = $SYSTEM.SQL.Functions.DAYNAME($ZDATETIME($ZDATETIMEH(ts,3), 3))
     set obj.DayOfMonth = $SYSTEM.SQL.Functions.DAYOFMONTH($ZDATETIME($ZDATETIMEH(ts,3), 3))
     set obj.DayOfYear = $SYSTEM.SQL.Functions.DAYOFYEAR($ZDATETIME($ZDATETIMEH(ts,3), 3))
+    set obj.MonthYearNumDay = MonthYearNumeric_$PIECE($PIECE($ZDATETIME($ZDATETIMEH(ts,3), 3), " ", 1), "-", 3)
 
     return obj
 }
@@ -209,16 +229,6 @@ ClassMethod TimeTable(hours, minutes, seconds) As %Library.DynamicObject
     set obj.ampmtimestamp = $ZTIME($ZTIMEH($PIECE(timestamp, " ", 3), 2), 3)
 
     return obj
-}
-
-ClassMethod Populate24Hours() As %Status
-{
-    Set sc = $$$OK
-    
-    
-    
-    
-    return sc
 }
 
 }

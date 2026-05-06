@@ -58,4 +58,5 @@ do ##class(data.generator).Generate()
 ```
 
 And thats it! Three tables with date dimensions is ready to go!
+
 (For additional parameters, such as a custom date range or preferred data sets, see the ClassMethod documentation.)
